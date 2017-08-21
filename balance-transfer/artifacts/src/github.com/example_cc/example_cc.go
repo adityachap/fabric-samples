@@ -32,40 +32,37 @@ type SimpleChaincode struct {
 }
 
 func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface) pb.Response  {
-	logger.Info("########### example_cc0 Init ###########")
+        logger.Info("########### example_cc0 Init ###########")
 
-	_, args := stub.GetFunctionAndParameters()
-	var A, B string    // Entities
-	var Aval, Bval int // Asset holdings
-	var err error
+        _, args := stub.GetFunctionAndParameters()
 
-	// Initialize the chaincode
-	A = args[0]
-	Aval, err = strconv.Atoi(args[1])
-	if err != nil {
-		return shim.Error("Expecting integer value for asset holding")
-	}
-	B = args[2]
-	Bval, err = strconv.Atoi(args[3])
-	if err != nil {
-		return shim.Error("Expecting integer value for asset holding")
-	}
-	logger.Info("Aval = %d, Bval = %d\n", Aval, Bval)
+        var key string    // Entities
+        var val, i int // Asset holdings
+        var err error
 
-	// Write the state to the ledger
-	err = stub.PutState(A, []byte(strconv.Itoa(Aval)))
-	if err != nil {
-		return shim.Error(err.Error())
-	}
-
-	err = stub.PutState(B, []byte(strconv.Itoa(Bval)))
-	if err != nil {
-		return shim.Error(err.Error())
-	}
-
-	return shim.Success(nil)
+        if (len(args)%2) != 0 {
+                return shim.Error("Please input even number of arguments as [key & value]")
+        }
 
 
+        for i=0;i<len(args);i=i+2 {
+          key = args[i]
+          val, err = strconv.Atoi(args[i+1])
+
+          if err != nil {
+            return shim.Error("Expecting integer value for asset holding")
+          }
+
+          logger.Info("key = %d, val = %d\n", key, val)
+
+          err = stub.PutState(key, []byte(strconv.Itoa(val)))
+          if err != nil {
+             return shim.Error(err.Error())
+          }
+
+        }
+
+        return shim.Success(nil)
 }
 
 // Transaction makes payment of X units from A to B
